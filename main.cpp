@@ -5,19 +5,25 @@
 #include <conio.h>
 #include "myVector.h"
 #include "Pacman.h"
+#include <time.h>
 #include <cmath>
-
+#include <vector>
 using namespace sf;
 using namespace std;
 
 int main()
 {
-	RenderWindow game(VideoMode(800, 600), "GAME", Style::Default);
+	srand(time(NULL));
+
+	RenderWindow game(VideoMode::getDesktopMode() , "GAME", Style::Default);
 	game.setFramerateLimit(60);
 
 	Pacman pac({ 3, 0 }, { 0, 0 });
+	vector<Pacman> vPac;
+	vPac.push_back(pac);
+	v2f mousePosition;
 
-	v2f dir, mousePosition;
+	float x, y;
 
 	while (game.isOpen())
 	{
@@ -29,12 +35,19 @@ int main()
 				game.close();
 
 			if (Mouse::isButtonPressed(Mouse::Left))
-				pac.atDestination = true;
+			{
+				x = rand() % game.getSize().x;
+				y = rand() % game.getSize().y;
+				pac.position = { x, y };
+				pac.sprite.setPosition({ x, y });
+				pac.rect.setPosition({ x, y });
+				vPac.push_back(pac);
+			}
 
 			if (Mouse::isButtonPressed(Mouse::Right))
 				pac.rect.setPosition({ mousePosition.x , mousePosition.y });
 
-			// pobieranie pozycji myszki do wektora w≥asnego typu (z okreúlonymi dzia≥aniami na nim)
+			// pobieranie pozycji myszki do wektora w≈Çasnego typu (z okre≈õlonymi dzia≈Çaniami na nim)
 			mousePosition.x = Mouse::getPosition(game).x;
 			mousePosition.y = Mouse::getPosition(game).y;
 		}
@@ -42,26 +55,34 @@ int main()
 		//cout << "Pac position: X = " << pac.position.x << " Y = " << pac.position.y << "\n";
 		//cout << "Pac velocityV [" << pac.velocity.x << "; " << pac.velocity.y << "]\n";
 	
-		dir = mousePosition - pac.position;
+		for (auto i = vPac.begin(); i != vPac.end(); ++i)
+		{
+			i->dir = mousePosition - i->position;
+			i->dir.normalizeVector();
+			i->velocity = 5 * i->dir;
+			i->move();
 
-		dir.normalizeVector();
-		pac.velocity = 3 * dir;
+			if (mousePosition.x >= i->position.x && mousePosition.x <= (i->position.x + 32) && mousePosition.y >= i->position.y && mousePosition.y <= (i->position.y + 32))
+				i->atDestination = true;
 
-		pac.move();
+			else
+				i->atDestination = false;
+		}
 
-		if (mousePosition.x >= pac.position.x && mousePosition.x <= (pac.position.x + 32) && mousePosition.y >= pac.position.y && mousePosition.y <= (pac.position.y + 32))
-			pac.atDestination = true;
 
-		else
-			pac.atDestination = false;
-
-		pac.updateSpritePosition();
+		for (auto i = vPac.begin(); i != vPac.end(); ++i)
+			i->updateSpritePosition();
+		
 		game.clear();
-		pac.drawTo(game);
+		
+		for (auto i = vPac.begin(); i != vPac.end(); ++i)
+			i->drawTo(game);
+
 		game.display();
 	}
 
 	_getch();
+	
 
 	return 0;
 }
