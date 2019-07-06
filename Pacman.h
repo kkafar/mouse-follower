@@ -1,4 +1,3 @@
-#pragma once
 #include <SFML\Graphics.hpp>
 #include "myVector.h"
 using namespace sf;
@@ -24,8 +23,6 @@ public:
 
 	v2f velocity;
 	v2f position;
-
-
-
+	v2f dir;
 };
 
